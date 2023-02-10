@@ -7,19 +7,55 @@ key: 037349274
      023344779
 cp:  tsetefsda
 
+
+
+012345678
+023344779
+
+037349274
+
+
+encrypt:
+ordena com base nos weights:
+
+tsetefsda
+023344779
+
+decrypt
+ordena a chave
+
+
+:wq
+:
+023344779
+
 0123456789
 1012200201
 1124666889
 
+037349274 --> 037349274
+    |             ^
+    v             |
+023344779 --> 
+
+012345678
+023344779
+
 037349274
-    |
-    v
-026348175 
+026348175
+---------
+01100110-1
 
 tsetefsda
 012345678
 
 testeasdf
+
+-> ??
+-> key compactada: i \in [0..blocksize), out[i] = in[keycompact[i]]
+
+
+
 
 
  

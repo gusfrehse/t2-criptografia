@@ -13,6 +13,12 @@ struct val {
     int chr;
 };
 
+struct decryptval {
+    int weight;
+    int chr;
+    int visited;
+};
+
 void printhelp(FILE *f, char *exename) {
     fprintf(f, "Usage:\n\t%s [-d] <key>\n", exename);
 }
@@ -30,6 +36,17 @@ void insert(struct val* arr, int arrsize, struct val v) {
 
     arr[i] = v;
 }
+
+void insertdecrypt(struct decryptval* arr, int arrsize, struct decryptval v) {
+    int i;
+    for (i = 0; arr[i].weight <= v.weight && i < arrsize; i++);
+
+    for (int j = arrsize; j > i; j--)
+        arr[j] = arr[j - 1];
+
+    arr[i] = v;
+}
+
 void printarr(struct val *v, int size) {
     for (int i = 0; i < size; i++) {
         printf("%3d ", v[i].weight);
@@ -67,34 +84,36 @@ void sortkey(char *key, int keylen) {
     if (keylen <= 1)
         return;
 
-    printf("key: %s\n", key);
-
     for (int i = 1; i < keylen; i++) {
         int j;
         for (j = i; key[j - 1] >= key[j] && j >= 0; j--) {
             char tmp = key[j];
             key[j] = key[j - 1];
-            key[j - 1] = key[j];
+            key[j - 1] = tmp;
         }
     }
-
-    printf("key: %s\n", key);
 }
 
 void decrypt(char *key, int keylen) {
-
     sortkey(key, keylen); 
-    return;
+    printf("ascii: %s\n", key);
+
     char buffer[BUFFER_SIZE];
 
-    struct val arr[BUFFER_SIZE];
-    int read;
+    struct decryptval arr[BUFFER_SIZE];
 
+    int read;
     while ((read = fread(buffer, 1, BUFFER_SIZE, stdin)) > 0) {
         for (int i = 0; i < read; i++) {
             char k = getkey(i, key, keylen);
 
-            insert(arr, i, (struct val){ .weight = k, .chr = buffer[i] });
+            insertdecrypt(arr, i, (struct decryptval){ .weight = k, .chr = buffer[i], .visited = 0});
+        }
+
+        for (int i = 0; i < read; i++) {
+            for (int j = 0; j < read; j++) {
+                :w
+            } 
         }
 
         for (int i = 0; i < read; i++) {
