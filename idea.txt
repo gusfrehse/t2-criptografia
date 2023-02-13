@@ -4,58 +4,35 @@
 pt:  testeasdf
 key: 037349274
 
-     023344779
+     02334477
 cp:  tsetefsda
 
 
+cp:  tsetefsda 
 
-012345678
-023344779
+agora:
+key: 03734927
+cey: 02534716
 
-037349274
+             /--- repete
+deveria:     v
+key: 037349270
+cey: 026458271
 
+
+pt:   abcde
+key:  abc
+ekey: abcab
+ct:   adbec
+
+ckey: 01200
+eckey:02314
 
 encrypt:
-ordena com base nos weights:
-
-tsetefsda
-023344779
-
-decrypt
-ordena a chave
+   pt: abcde----
+   k:  067812345
+   ct: a
+   ke: abcab
+   ct: 
 
 
-:wq
-:
-023344779
-
-0123456789
-1012200201
-1124666889
-
-037349274 --> 037349274
-    |             ^
-    v             |
-023344779 --> 
-
-012345678
-023344779
-
-037349274
-026348175
----------
-01100110-1
-
-tsetefsda
-012345678
-
-testeasdf
-
--> ??
--> key compactada: i \in [0..blocksize), out[i] = in[keycompact[i]]
-
-
-
-
-
- 

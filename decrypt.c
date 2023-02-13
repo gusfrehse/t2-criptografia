@@ -1,5 +1,8 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <limits.h>
 
 struct decryptval {
     int weight;
@@ -23,14 +26,19 @@ void compresskey(char *key, int keylen) {
     }
 }
 
+static char getkey(int i, char *key, int keylen) {
+    return key[((i % keylen) + keylen) % keylen];
+}
+
 // collapse key values to ckey = [0..len-1]^len, keeping order.
 // then, for each c \in ckey get ct[c] and put in the j pos of pt such that ckey[j].val = ct[c] and ckey[j].used = 0 
 
-int nextbigger(char *key, int keylen, int start) {
-    int minind = start;
-    int minval = key[start];
-    for (int i = start; i < keylen; i++) {
-        if (key[i] >= start && key[i] < minval) {
+int nextbigger(char *key, int keylen, char *used) {
+    int minval = CHAR_MAX;
+    int minind = -1;
+
+    for (int i = 0; i < keylen; i++) {
+        if (!used[i] && key[i] < minval) {
             minind = i;
             minval = key[i];
         }
@@ -39,42 +47,74 @@ int nextbigger(char *key, int keylen, int start) {
     return minind;
 }
 
+int minkey(char *key, int keylen) {
+    int min = key[0];
+    int minind = 0;
+    for (int i = 1; i < keylen; i++) {
+        if (key[i] < min) {
+            minind = i;
+            min = key[i];
+        }
+    }
+
+    return minind;
+}
+
 // toodo
 void collapsekey(char *key, int keylen) {
-    for (int i = 0; i < key; i++) {
-        nextbigger(key, keylen, i); 
+    char *newkey = malloc(keylen);
+    assert(newkey);
+
+    char *used = malloc(keylen);
+    assert(used);
+
+    memset(used, 0, keylen);
+
+    int minind = minkey(key, keylen);
+
+    for (int i = 0; i < keylen; i++) {
+        int ind = nextbigger(key, keylen, used); 
+        newkey[ind] = i;
+        used[ind] = 1;
     }
+
+    memcpy(key, newkey, keylen);
+
+    free(newkey);
 }
 
 void decrypt(char *key, int keylen, long long buffersize) {
-    char *buffer;
-    struct decryptval *arr;
+    char *buffer = malloc(buffersize);
+    assert(buffer);
+
+    char *expandedkey = malloc(buffersize);
+    assert(expandedkey);
+
     int read;
 
-    if (!(buffer = malloc(buffersize))) {
-        perror("encrypt buffer");
-        exit(1);
+    for (int i = 0; i < buffersize; i++) {
+        expandedkey[i] = getkey(i, key, keylen);
     }
 
-    if (!(buffer = calloc(buffersize, sizeof(struct decryptval)))) {
-        perror("encrypt arr");
-        exit(1);
+    printf("expandedkey: ");
+    for (int i = 0; i < buffersize; i++) {
+        printf("%d ", expandedkey[i]);
     }
+    printf("\n");
+
+    collapsekey(expandedkey, buffersize);
+
+    printf("expandedkey: ");
+    for (int i = 0; i < buffersize; i++) {
+        printf("%d ", expandedkey[i]);
+    }
+    printf("\n");
 
     while ((read = fread(buffer, 1, buffersize, stdin)) > 0) {
         for (int i = 0; i < read; i++) {
             char k = getkey(i, key, keylen);
-
-            insertdecrypt(arr, i, (struct decryptval){ .weight = k, .chr = buffer[i], .visited = 0});
-        }
-
-        for (int i = 0; i < read; i++) {
-            for (int j = 0; j < read; j++) {
-            } 
-        }
-
-        for (int i = 0; i < read; i++) {
-            fputc(arr[i].chr, stdout); 
+            fputc(buffer[key[i]], stdout); 
+            fprintf(stderr, "i: %d key[i]: %d buffer[key[i]]: %c\n", i, key[i], buffer[key[i]]);
         }
     }
 }

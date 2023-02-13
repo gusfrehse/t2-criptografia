@@ -5,32 +5,14 @@
 #include <unistd.h>
 
 #include "encrypt.h"
+#include "decrypt.h"
 
 #define HEAP_SIZE 1024
 
+#define BUFFER_SIZE 32
+
 void printhelp(FILE *f, char *exename) {
     fprintf(f, "Usage:\n\t%s [-d] <key>\n", exename);
-}
-
-void insertdecrypt(struct decryptval* arr, int arrsize, struct decryptval v) {
-    int i;
-    for (i = 0; arr[i].weight <= v.weight && i < arrsize; i++);
-
-    for (int j = arrsize; j > i; j--)
-        arr[j] = arr[j - 1];
-
-    arr[i] = v;
-}
-
-void printarr(struct val *v, int size) {
-    for (int i = 0; i < size; i++) {
-        printf("%3d ", v[i].weight);
-    }
-    printf("\n");
-    for (int i = 0; i < size; i++) {
-        printf("  %c ", v[i].chr);
-    }
-    printf("\n");
 }
 
 void sortkey(char *key, int keylen) {
@@ -70,7 +52,7 @@ int main(int argc, char **argv) {
     }
 
     if (decryptflag)
-        decrypt(argv[optind], strlen(argv[optind]));
+        decrypt(argv[optind], strlen(argv[optind]), BUFFER_SIZE);
     else
-        encrypt(argv[optind], strlen(argv[optind])); 
+        encrypt(argv[optind], strlen(argv[optind]), BUFFER_SIZE); 
 }

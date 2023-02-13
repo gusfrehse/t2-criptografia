@@ -3,14 +3,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define BUFFER_SIZE 32
+#define PADDING_START_CHAR '-'
+#define PADDING_END_CHAR '='
+
 
 struct val {
     int weight;
     int chr;
 };
 
-char getkey(int i, char *key, int keylen) {
+static char getkey(int i, char *key, int keylen) {
     return key[((i % keylen) + keylen) % keylen];
 }
 
@@ -34,21 +36,38 @@ void encrypt(char *key, int keylen, long long buffersize) {
         exit(1);
     }
 
-    if (!(buffer = calloc(buffersize, sizeof(struct val)))) {
+    if (!(arr = calloc(buffersize, sizeof(struct val)))) {
         perror("encrypt arr");
         exit(1);
     }
 
-    while ((read = fread(buffer, 1, BUFFER_SIZE, stdin)) > 0) {
-        for (int i = 0; i < read; i++) {
+    int padded = 0;
+    while (1) {
+        read = fread(buffer, 1, buffersize, stdin);
+
+        if (read < buffersize) {
+            padded = 1;
+            // need to add padding
+            // fill out with the size of buffersize - read
+            char paddingsize = buffersize - read;
+            buffer[read] = PADDING_START_CHAR;
+            for (int i = read + 1; i < buffersize; i++) {
+                buffer[i] = PADDING_END_CHAR;
+            }
+        }
+
+        for (int i = 0; i < buffersize; i++) {
             char k = getkey(i, key, keylen);
 
             insert(arr, i, (struct val){ .weight = k, .chr = buffer[i] });
         }
 
-        for (int i = 0; i < read; i++) {
+        for (int i = 0; i < buffersize; i++) {
             fputc(arr[i].chr, stdout); 
         }
+
+        if (padded)
+            break;
     }
 
     free(buffer);
