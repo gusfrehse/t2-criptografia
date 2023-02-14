@@ -10,10 +10,9 @@ struct decryptval {
     int visited;
 };
 
-// Compress a key of chars
+// Compress a key of unsigned chars
 // keylen^2 complexity
-void compresskey(char *key, int keylen) {
-    int current;
+void compresskey(unsigned char *key, int keylen) {
     unsigned int *buffer;
 
     if (!(buffer = calloc(keylen, sizeof(unsigned int)))) {
@@ -26,14 +25,12 @@ void compresskey(char *key, int keylen) {
     }
 }
 
-static char getkey(int i, char *key, int keylen) {
+static unsigned char getkey(int i, unsigned char *key, int keylen) {
     return key[((i % keylen) + keylen) % keylen];
 }
 
 // collapse key values to ckey = [0..len-1]^len, keeping order.
-// then, for each c \in ckey get ct[c] and put in the j pos of pt such that ckey[j].val = ct[c] and ckey[j].used = 0 
-
-int nextbigger(char *key, int keylen, char *used) {
+int nextbigger(unsigned char *key, int keylen, unsigned char *used) {
     int minval = CHAR_MAX;
     int minind = -1;
 
@@ -47,7 +44,7 @@ int nextbigger(char *key, int keylen, char *used) {
     return minind;
 }
 
-int minkey(char *key, int keylen) {
+int minkey(unsigned char *key, int keylen) {
     int min = key[0];
     int minind = 0;
     for (int i = 1; i < keylen; i++) {
@@ -61,16 +58,16 @@ int minkey(char *key, int keylen) {
 }
 
 // toodo
-void collapsekey(char *key, int keylen) {
-    char *newkey = malloc(keylen);
+void collapsekey(unsigned char *key, int keylen) {
+    unsigned char *newkey = malloc(keylen);
     assert(newkey);
 
-    char *used = malloc(keylen);
+    unsigned char *used = malloc(keylen);
     assert(used);
 
     memset(used, 0, keylen);
 
-    int minind = minkey(key, keylen);
+    //int minind = minkey(key, keylen);
 
     for (int i = 0; i < keylen; i++) {
         int ind = nextbigger(key, keylen, used); 
@@ -83,11 +80,14 @@ void collapsekey(char *key, int keylen) {
     free(newkey);
 }
 
-void decrypt(char *key, int keylen, long long buffersize) {
-    char *buffer = malloc(buffersize);
-    assert(buffer);
+void decrypt(unsigned char *key, int keylen, long long buffersize) {
+    unsigned char *backbuffer = malloc(buffersize);
+    assert(backbuffer);
 
-    char *expandedkey = malloc(buffersize);
+    unsigned char *presentbuffer = malloc(buffersize);
+    assert(presentbuffer);
+
+    unsigned char *expandedkey = malloc(buffersize);
     assert(expandedkey);
 
     int read;
@@ -96,26 +96,43 @@ void decrypt(char *key, int keylen, long long buffersize) {
         expandedkey[i] = getkey(i, key, keylen);
     }
 
-    printf("expandedkey: ");
-    for (int i = 0; i < buffersize; i++) {
-        printf("%d ", expandedkey[i]);
-    }
-    printf("\n");
-
     collapsekey(expandedkey, buffersize);
 
-    printf("expandedkey: ");
-    for (int i = 0; i < buffersize; i++) {
-        printf("%d ", expandedkey[i]);
-    }
-    printf("\n");
+    read = fread(presentbuffer, 1, buffersize, stdin);
 
-    while ((read = fread(buffer, 1, buffersize, stdin)) > 0) {
-        for (int i = 0; i < read; i++) {
-            char k = getkey(i, key, keylen);
-            fputc(buffer[key[i]], stdout); 
-            fprintf(stderr, "i: %d key[i]: %d buffer[key[i]]: %c\n", i, key[i], buffer[key[i]]);
+    while ((read = fread(backbuffer, 1, buffersize, stdin)) > 0) {
+        for (int i = 0; i < buffersize; i++) {
+            unsigned char c = presentbuffer[expandedkey[i]];
+            fputc(c, stdout); 
         }
+
+        // swap backbuffer and presentbuffer
+        unsigned char *tmp = presentbuffer;
+        presentbuffer = backbuffer;
+        backbuffer = tmp;
     }
+
+    int end = 0;
+    for (int i = 0; i < buffersize; i++) {
+        unsigned char c = presentbuffer[expandedkey[i]];
+
+        if (c == '-') {
+            for (int j = i + 1; j < buffersize; j++) {
+                if (presentbuffer[expandedkey[j]] == '=') {
+                    end = 1;
+                    break;
+                }
+            }
+        }
+
+        if (end)
+            break;
+
+        fputc(c, stdout); 
+    }
+
+    free(backbuffer);
+    free(presentbuffer);
+    free(expandedkey);
 }
 

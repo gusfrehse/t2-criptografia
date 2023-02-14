@@ -40,6 +40,7 @@ int main(int argc, char **argv) {
                 break;
             case '?':
                 printhelp(stderr, argv[0]);
+                break;
             default:
                 exit(1);
         }

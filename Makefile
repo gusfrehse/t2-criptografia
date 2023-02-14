@@ -1,4 +1,5 @@
-CFLAGS += -g
+CFLAGS += -Wall -Wpedantic -Wextra -Og
+LDFLAGS += -g
 EXE = cypher
 
 $(EXE) : cypher.o decrypt.o encrypt.o
@@ -9,5 +10,5 @@ encrypt.o : encrypt.h
 .PHONY: clean
 
 clean :
-	-rm *.o $(EXE)
+	rm *.o $(EXE)
 

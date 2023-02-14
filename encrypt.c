@@ -49,7 +49,6 @@ void encrypt(char *key, int keylen, long long buffersize) {
             padded = 1;
             // need to add padding
             // fill out with the size of buffersize - read
-            char paddingsize = buffersize - read;
             buffer[read] = PADDING_START_CHAR;
             for (int i = read + 1; i < buffersize; i++) {
                 buffer[i] = PADDING_END_CHAR;
